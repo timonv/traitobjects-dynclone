@@ -1,5 +1,4 @@
 use dyn_clone::{clone_box, DynClone};
-use std::{marker::PhantomData, sync::Arc};
 
 trait MyTrait: DynClone {}
 
@@ -21,8 +20,10 @@ struct MyThing {
 struct MyBox<T>(T);
 
 impl MyThing {
-    pub fn new(thing: impl MyTrait) -> Self {
-        let thing: Box<dyn MyTrait> = clone_box(&thing);
+    // This should work
+    pub fn new(thing: impl MyTrait + Clone) -> Self {
+        // But it still complains thing might not live long enough
+        let thing = clone_box(&thing);
         MyThing { owned: thing }
     }
 }
