@@ -1,15 +1,6 @@
-use std::ops::Deref;
+use std::rc::Rc;
 
-use dyn_clone::{clone_box, DynClone};
-
-trait MyTrait: DynClone {
-    fn clone_boxed(&self) -> Box<dyn MyTrait>
-    where
-        Self: Sized + 'static,
-    {
-        clone_box(&*self.clone())
-    }
-}
+trait MyTrait {}
 
 #[derive(Clone)]
 struct MyStruct {}
@@ -20,24 +11,24 @@ impl AsRef<MyStruct> for MyStruct {
     }
 }
 impl MyTrait for MyStruct {}
-impl MyTrait for Box<dyn MyTrait> {}
 
-impl<T: MyTrait + Clone> MyTrait for Box<T> {}
-impl<T: MyTrait + Clone> MyTrait for &T {}
-// impl MyTrait for &dyn MyTrait {}
-dyn_clone::clone_trait_object!(MyTrait);
+impl AsRef<MyStruct> for MyStruct
+{
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
 
 struct MyThing {
     owned: Box<dyn MyTrait>,
 }
 
-struct MyBox<T>(T);
-
 impl MyThing {
     // This should work
-    pub fn new<T: MyTrait + 'static>(thing: impl AsRef<T>) -> Self {
-        // But it still complains thing might not live long enough
-        let thing = thing.as_ref().clone_boxed();
+    pub fn new<T: MyTrait + Clone + 'static>(thing: impl AsRef<T>) -> Self {
+        let thing : &T = thing.as_ref();
+        let thing : T = thing.clone();
+        let thing : Box<T> = Box::new(thing);
         MyThing { owned: thing }
     }
 }
@@ -50,6 +41,6 @@ fn main() {
     // T = &'a MyStruct
     let _ = MyThing::new(&my_struct);
     let _ = MyThing::new(my_struct);
-    // T = MyStruct
-    // let _ = MyThing::new(my_struct);
+    let _ = MyThing::new(Box::new(MyStruct {}));
+    let _ = MyThing::new(Rc::new(MyStruct {}));
 }
