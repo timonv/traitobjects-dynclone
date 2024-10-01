@@ -12,12 +12,6 @@ impl AsRef<MyStruct> for MyStruct {
 }
 impl MyTrait for MyStruct {}
 
-impl AsRef<MyStruct> for MyStruct {
-    fn as_ref(&self) -> &Self {
-        self
-    }
-}
-
 struct MyThing {
     owned: Box<dyn MyTrait>,
 }
