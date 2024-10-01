@@ -5,7 +5,7 @@ trait MyTrait: DynClone {
     where
         Self: Sized + 'static,
     {
-        clone_box(&*self.clone())
+        clone_box(self)
     }
 }
 
